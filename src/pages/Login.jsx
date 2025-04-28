@@ -1,72 +1,46 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { AppContext } from '../context/AppContext';
-import { AdminContext } from '../context/AdminContext';
-import { DoctorContext } from '../context/DoctorContext';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
+import React, { useContext, useEffect, useState } from "react";
+import { AppContext } from "../context/AppContext";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const [role, setRole] = useState('User'); // Admin | Doctor | User
-  const [action, setAction] = useState('Login'); // Login | Sign Up
-
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-
-  const { backendUrl, setToken, token } = useContext(AppContext);
-  const { setAToken } = useContext(AdminContext);
-  const { setDToken } = useContext(DoctorContext);
+  const { backendUrl, token, setToken } = useContext(AppContext);
   const navigate = useNavigate();
+  const [state, setState] = useState("signup");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
-
     try {
-      if (role === 'Admin') {
-        const { data } = await axios.post(`${backendUrl}/api/admin/login`, { email, password });
+      if (state === "signup") {
+        const { data } = await axios.post(backendUrl + "/api/user/register", {
+          name,
+          password,
+          email,
+        });
         if (data.success) {
-          localStorage.setItem('aToken', data.token);
-          setAToken(data.token);
-          toast.success("Admin logged in!");
-        } else {
-          toast.error(data.message);
-        }
-      } else if (role === 'Doctor') {
-        const { data } = await axios.post(`${backendUrl}/api/doctor/login`, { email, password });
-        if (data.success) {
-          localStorage.setItem('dToken', data.token);
-          setDToken(data.token);
-          toast.success("Doctor logged in!");
+          localStorage.setItem("token", data.token);
+          setToken(data.token);
         } else {
           toast.error(data.message);
         }
       } else {
-        // Normal User
-        if (action === 'Sign Up') {
-          const { data } = await axios.post(`${backendUrl}/api/user/register`, {
-            name, email, password,
-          });
-          if (data.success) {
-            localStorage.setItem("token", data.token);
-            setToken(data.token);
-            toast.success("User registered successfully!");
-          } else {
-            toast.error(data.message);
-          }
+        const { data } = await axios.post(backendUrl + "/api/user/login", {
+          password,
+          email,
+        });
+        if (data.success) {
+          localStorage.setItem("token", data.token);
+          setToken(data.token);
         } else {
-          const { data } = await axios.post(`${backendUrl}/api/user/login`, { email, password });
-          if (data.success) {
-            localStorage.setItem("token", data.token);
-            setToken(data.token);
-            toast.success("User logged in!");
-          } else {
-            toast.error(data.message);
-          }
+          toast.error(data.message);
         }
       }
     } catch (error) {
-      toast.error("Something went wrong!");
+      toast.error(error.message);
     }
   };
 
@@ -77,82 +51,79 @@ const Login = () => {
   }, [token]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <form onSubmit={onSubmitHandler} className="w-full max-w-md bg-white shadow-lg border border-gray-200 rounded-xl p-6 space-y-5">
-        <h2 className="text-2xl font-bold text-center text-gray-800">
-          {role} {action}
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+      <form onSubmit={onSubmitHandler} className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg">
+        <h2 className="text-2xl font-bold text-center mb-2">
+          {state === "signup" ? "Create Account" : "Login"}
         </h2>
+        <p className="text-center text-gray-600 mb-6">
+          Please {state === "signup" ? "sign up" : "log in"} to book appointment
+        </p>
 
-        {action === "Sign Up" && role === "User" && (
-          <div>
-            <label className="block text-gray-700 mb-1">Full Name</label>
+        {state === "signup" && (
+          <div className="mb-4">
+            <label className="block text-gray-700 mb-2">Fullname</label>
             <input
               type="text"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2"
               onChange={(e) => setName(e.target.value)}
               value={name}
-              required
+              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="Enter your full name"
             />
           </div>
         )}
 
-        <div>
-          <label className="block text-gray-700 mb-1">Email</label>
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-2">Email</label>
           <input
             type="email"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2"
             onChange={(e) => setEmail(e.target.value)}
             value={email}
-            required
+            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+            placeholder="Enter your email"
           />
         </div>
 
-        <div>
-          <label className="block text-gray-700 mb-1">Password</label>
+        <div className="mb-6">
+          <label className="block text-gray-700 mb-2">Password</label>
           <input
             type="password"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2"
             onChange={(e) => setPassword(e.target.value)}
             value={password}
-            required
+            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+            placeholder="Enter your password"
           />
         </div>
 
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition duration-300"
         >
-          {action}
+          {state === "signup" ? "Create Account" : "Login"}
         </button>
 
-        {/* Switch between login/signup only for users */}
-        {role === "User" && (
-          <p className="text-sm text-center text-gray-600">
-            {action === "Login" ? (
-              <>
-                Don’t have an account?
-                <span onClick={() => setAction("Sign Up")} className="text-blue-600 ml-1 cursor-pointer hover:underline">Sign Up</span>
-              </>
-            ) : (
-              <>
-                Already have an account?
-                <span onClick={() => setAction("Login")} className="text-blue-600 ml-1 cursor-pointer hover:underline">Login</span>
-              </>
-            )}
-          </p>
-        )}
-
-        <div className="flex justify-center space-x-4 mt-2">
-          {["User", "Doctor", "Admin"].map((r) => (
-            <button
-              key={r}
-              type="button"
-              onClick={() => { setRole(r); setAction("Login"); }}
-              className={`px-3 py-1 rounded-lg text-sm border ${role === r ? "bg-blue-500 text-white" : "text-gray-600 border-gray-300"}`}
-            >
-              {r}
-            </button>
-          ))}
+        <div className="mt-4 text-center">
+          {state === "signup" ? (
+            <p>
+              Already have an account?{" "}
+              <span
+                onClick={() => setState("login")}
+                className="text-blue-500 cursor-pointer hover:underline"
+              >
+                Login here
+              </span>
+            </p>
+          ) : (
+            <p>
+              Create a new account?{" "}
+              <span
+                onClick={() => setState("signup")}
+                className="text-blue-500 cursor-pointer hover:underline"
+              >
+                Click here
+              </span>
+            </p>
+          )}
         </div>
       </form>
     </div>

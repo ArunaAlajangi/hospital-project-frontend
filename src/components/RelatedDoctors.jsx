@@ -7,13 +7,13 @@ const RelatedDoctors = ({speciality,docId}) => {
     const {doctors} = useContext(AppContext)
     const navigate = useNavigate()
 
-    const [relDoc,setRelDocs] = useState([])
+    const [relDoc,setRelDoc] = useState([])
 
     useEffect(()=>{
 
         if (doctors.length > 0 && speciality) {
             const doctorsData = doctors.filter((doc)=> doc.speciality ===speciality && doc._id !==docId)
-            setRelDocs(doctorsData)
+            setRelDoc(doctorsData)
         }
 
 
@@ -27,9 +27,9 @@ const RelatedDoctors = ({speciality,docId}) => {
       </p>
       <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-2 gap-y-6 px-3 sm:px-4">
         {relDoc.slice(0,5).map((item, index) => (
-          <div
+          <div key={item._id || index}
             onClick={() => {navigate(`/appointment/${item._id}`); scrollTo(0,0)}}
-            key={index}
+            // key={index._id || index}
             className="border border-blue-200 rounded-xl overflow-hidden cursor-pointer hover:translate-y-[-10px] transition-all duration-500"
           >
             <img
@@ -39,9 +39,14 @@ const RelatedDoctors = ({speciality,docId}) => {
             />
             <div className="p-4">
               <div className="flex items-center gap-2  text-sm text-green-500">
-                <p className="w-2 h-2 bg-green-500 rounded-full"></p>
-                <p>Available</p>
+              <p className={`flex items-center`}>
+  <span className={`w-3 h-3 ${item.available ? 'bg-green-500' : 'bg-red-500'} rounded-full`}></span>
+  <span className={`ml-2`}>{item.available ? 'Available' : 'Not Available'}</span>
+</p>
+
               </div>
+
+              
               <p className="text-gray-900 text-lg font-medium">{item.name}</p>
               <p className="text-gray-600 text-sm">{item.speciality}</p>
             </div>

@@ -10,16 +10,17 @@ const Doctors = () => {
   const navigate = useNavigate();
   const { Doctors } = useContext(AppContext);
 
-  const applyFilter = () => {
-    if (speciality) {
-      setFilterDoc(doctors.filter(doc => doc.speciality === speciality));
-    } else {
-      setFilterDoc(doctors);
-    }
-  };
-
   useEffect(() => {
-    applyFilter();
+    if (doctors && doctors.length > 0) {
+      if (speciality) {
+        const filtered = doctors.filter(
+          (doc) => doc.speciality.toLowerCase().trim() === speciality.toLowerCase().trim()
+        );
+        setFilterDoc(filtered);
+      } else {
+        setFilterDoc(doctors);
+      }
+    }
   }, [doctors, speciality]);
 
   return (
@@ -45,7 +46,7 @@ const Doctors = () => {
         <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 gap-y-6'>
           {filterDoc.map((item, index) => (
             <div
-              key={index} // Always provide a unique key when mapping over elements
+            key={item._id || index} // Always provide a unique key when mapping over elements
               onClick={() => navigate(`/appointment/${item._id}`)}
               className="border border-blue-200 rounded-xl overflow-hidden cursor-pointer hover:translate-y-[-10px] transition-all duration-500"
             >
